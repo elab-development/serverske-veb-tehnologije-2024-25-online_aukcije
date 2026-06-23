@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Auction;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -51,6 +52,46 @@ test('it returns json when a category is not found', function () {
     $this->getJson('/api/categories/999')
         ->assertNotFound()
         ->assertJsonPath('message', 'Resource not found.');
+});
+
+test('it lists auctions for a category', function () {
+    $category = Category::factory()->create();
+    $otherCategory = Category::factory()->create();
+    $seller = User::factory()->create(['role' => 'seller']);
+
+    Auction::factory()->create([
+        'category_id' => $category->id,
+        'user_id' => $seller->id,
+        'title' => 'Laptop aukcija',
+        'status' => 'active',
+        'starting_price' => 300,
+    ]);
+
+    Auction::factory()->create([
+        'category_id' => $category->id,
+        'user_id' => $seller->id,
+        'title' => 'Telefon aukcija',
+        'status' => 'draft',
+        'starting_price' => 150,
+    ]);
+
+    Auction::factory()->create([
+        'category_id' => $otherCategory->id,
+        'user_id' => $seller->id,
+        'title' => 'Druga kategorija',
+        'status' => 'active',
+        'starting_price' => 500,
+    ]);
+
+    $this->getJson("/api/categories/{$category->id}/auctions?search=Laptop&status=active&per_page=1&sort_by=starting_price&sort_direction=asc")
+        ->assertOk()
+        ->assertJsonPath('category.id', $category->id)
+        ->assertJsonPath('count', 1)
+        ->assertJsonPath('total', 1)
+        ->assertJsonPath('per_page', 1)
+        ->assertJsonPath('sort.by', 'starting_price')
+        ->assertJsonPath('sort.direction', 'asc')
+        ->assertJsonPath('auctions.0.title', 'Laptop aukcija');
 });
 
 test('it returns validation errors as json', function () {

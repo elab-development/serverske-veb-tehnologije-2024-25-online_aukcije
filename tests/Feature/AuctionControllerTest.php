@@ -57,6 +57,39 @@ test('it searches filters paginates and sorts auctions', function () {
         ->assertJsonPath('auctions.0.title', 'PlayStation 5 konzola');
 });
 
+test('it exports auctions as a csv file', function () {
+    $seller = User::factory()->create([
+        'name' => 'Test Seller',
+        'email' => 'seller@example.test',
+        'role' => 'seller',
+    ]);
+    $category = Category::factory()->create(['name' => 'Elektronika']);
+
+    Auction::factory()->create([
+        'user_id' => $seller->id,
+        'category_id' => $category->id,
+        'title' => 'PlayStation 5 konzola',
+        'description' => 'Konzola sa dva kontrolera.',
+        'starting_price' => 300,
+        'current_price' => null,
+        'status' => 'active',
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDays(5),
+    ]);
+
+    $response = $this->get('/api/auctions/export');
+
+    $response
+        ->assertOk()
+        ->assertHeader('content-type', 'text/csv; charset=UTF-8');
+
+    expect($response->streamedContent())
+        ->toContain('id,title,description,category,seller,seller_email,winner,winner_email,starting_price,current_price,status,starts_at,ends_at,bids_count,created_at,updated_at')
+        ->toContain('"PlayStation 5 konzola"')
+        ->toContain('Elektronika')
+        ->toContain('seller@example.test');
+});
+
 test('only sellers can create auctions', function () {
     $category = Category::factory()->create();
     $buyer = User::factory()->create(['role' => 'buyer']);
