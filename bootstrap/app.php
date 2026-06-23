@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -24,6 +23,20 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(function (Request $request): bool {
             return $request->is('api/*') || $request->expectsJson();
+        });
+
+        $exceptions->render(function (\ErrorException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            if (! str_contains($exception->getMessage(), 'tempnam()')) {
+                return null;
+            }
+
+            return response()->json([
+                'message' => 'Temporary file storage is not available for this request.',
+            ], 503);
         });
 
         $exceptions->render(function (AuthenticationException $exception, Request $request) {
