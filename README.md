@@ -1,59 +1,273 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Auctions API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 12 API backend za aukcijsku aplikaciju. Projekat pokriva registraciju i prijavu korisnika, role korisnika, kategorije, aukcije, bidove, automatsko zavrsavanje isteklih aukcija, CSV eksport aukcija i Swagger dokumentaciju.
 
-## About Laravel
+## Tehnologije
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2+
+- Laravel 12
+- Laravel Sanctum
+- MySQL
+- Pest/PHPUnit testovi
+- darkaonline/l5-swagger
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Povlacenje projekta
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Kloniraj repozitorijum i udji u folder projekta:
 
-## Learning Laravel
+```bash
+git clone <repository-url>
+cd auctions
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Instaliraj PHP zavisnosti:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+composer install
+```
 
-## Laravel Sponsors
+Ako zelis da koristis Vite/Laravel frontend alatke koje dolaze uz Laravel skeleton:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+npm install
+```
 
-### Premium Partners
+## Podesavanje lokalnog okruzenja
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Kopiraj `.env.example` u `.env`:
 
-## Contributing
+```bash
+cp .env.example .env
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Na Windows PowerShell-u mozes koristiti:
 
-## Code of Conduct
+```powershell
+Copy-Item .env.example .env
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Generisi aplikacioni kljuc:
 
-## Security Vulnerabilities
+```bash
+php artisan key:generate
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+U `.env` podesi konekciju ka lokalnoj MySQL bazi. Podrazumevano je:
 
-## License
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=auctions
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Pre migracija napravi bazu `auctions` u MySQL-u.
+
+## Migracije i seed podaci
+
+Pokreni migracije:
+
+```bash
+php artisan migrate
+```
+
+Popuni bazu pocetnim podacima:
+
+```bash
+php artisan db:seed
+```
+
+Ili sve odjednom za svezu lokalnu bazu:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Seeder kreira admin korisnika i nekoliko seller naloga. Svi rucno definisani seed korisnici imaju lozinku:
+
+```text
+password
+```
+
+Primeri naloga:
+
+```text
+admin@auctions.test
+seller.electronics@auctions.test
+seller.vehicles@auctions.test
+seller.collectibles@auctions.test
+```
+
+## Pokretanje aplikacije
+
+Pokreni Laravel server:
+
+```bash
+php artisan serve
+```
+
+Aplikacija ce biti dostupna na:
+
+```text
+http://127.0.0.1:8000
+```
+
+API rute su pod `/api`, na primer:
+
+```text
+http://127.0.0.1:8000/api/auctions
+```
+
+## Swagger dokumentacija
+
+Projekat koristi `darkaonline/l5-swagger`.
+
+Generisi OpenAPI dokumentaciju:
+
+```bash
+php artisan l5-swagger:generate
+```
+
+Swagger UI se otvara na:
+
+```text
+http://127.0.0.1:8000/api/documentation
+```
+
+Raw OpenAPI JSON je dostupan na:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+Za autorizovane rute prvo pozovi `/api/login` ili `/api/register`, kopiraj `access_token`, pa u Swagger UI klikni `Authorize` i unesi token u formatu:
+
+```text
+Bearer <token>
+```
+
+## Scheduler i zavrsavanje aukcija
+
+Postoji komanda koja zavrsava istekle aktivne aukcije:
+
+```bash
+php artisan auctions:finish-ended
+```
+
+Komanda:
+
+- pronalazi aktivne aukcije kojima je prosao `ends_at`
+- postavlja status na `finished`
+- postavlja pobednika na korisnika sa najvecim bidom
+- ostavlja `winner_id` praznim ako aukcija nema bidove
+
+Scheduler je podesen da komandu pokrece svake minute. Lokalno ga mozes pokrenuti sa:
+
+```bash
+php artisan schedule:work
+```
+
+U produkciji treba podesiti sistemski cron da pokrece Laravel scheduler.
+
+## Testovi
+
+Pokretanje svih testova:
+
+```bash
+php artisan test
+```
+
+## Glavne funkcionalnosti
+
+### Autentifikacija
+
+- Registracija korisnika
+- Login korisnika
+- Logout korisnika
+- Sanctum Bearer token autentifikacija
+- Role korisnika: `admin`, `seller`, `buyer`
+
+Registracija dozvoljava samo role `buyer` i `seller`. Admin korisnik se kreira kroz seeder.
+
+### Kategorije
+
+- Javni pregled svih kategorija
+- Javni pregled jedne kategorije
+- Pregled aukcija po kategoriji
+- Kreiranje, azuriranje i brisanje kategorija samo za admin korisnika
+
+Kategorija ima naziv i opis.
+
+### Aukcije
+
+- Javni pregled aukcija
+- Javni pregled jedne aukcije
+- Pretraga aukcija
+- Filteri po statusu, kategoriji, selleru, winneru, ceni i datumima
+- Sortiranje i paginacija
+- Kreiranje aukcije samo za `seller` korisnika
+- Azuriranje i brisanje aukcije za vlasnika aukcije ili admina
+- Pravila za azuriranje i brisanje zavise od statusa aukcije
+
+Statusi aukcije:
+
+```text
+draft
+active
+finished
+cancelled
+```
+
+`current_price` se ne postavlja rucno pri kreiranju ili azuriranju aukcije. To polje se menja kroz bidove.
+
+### Bidovi
+
+- Bid moze postaviti samo `buyer`
+- Bid se postavlja nad aktivnom aukcijom koja je pocela i nije zavrsena
+- Iznos mora biti veci od trenutne cene ili pocetne cene ako trenutna cena ne postoji
+- Ako buyer vec ima bid za istu aukciju, novi zahtev azurira postojeci bid
+- Brisanje bidova nije predvidjeno
+
+Pregled bidova:
+
+- `buyer` vidi svoj bid za konkretnu aukciju
+- `seller` vidi sve bidove samo za svoju aukciju
+- `admin` vidi bidove za svaku aukciju
+
+### Eksterni katalozi
+
+Ruta `/api/auction-external-catalog` poziva javne API servise i vraca reference proizvoda sa cenama:
+
+- DummyJSON Products
+- Fake Store API
+
+Podrzani query parametri:
+
+```text
+query
+limit
+```
+
+### CSV eksport
+
+Ruta:
+
+```text
+GET /api/auctions/export
+```
+
+Preuzima CSV fajl sa podacima o aukcijama. CSV sadrzi osnovne podatke aukcije, kategoriju, sellera, winnera, cene, status, datume i broj bidova.
+
+## Korisne komande
+
+```bash
+composer install
+php artisan key:generate
+php artisan migrate:fresh --seed
+php artisan l5-swagger:generate
+php artisan serve
+php artisan schedule:work
+php artisan test
+```
