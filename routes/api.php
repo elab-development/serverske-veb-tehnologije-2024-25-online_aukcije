@@ -16,6 +16,8 @@ Route::apiResource('categories', CategoryController::class)->only([
     'show',
 ]);
 
+Route::get('/categories/{category}/auctions', [CategoryController::class, 'auctions']);
+
 Route::apiResource('categories', CategoryController::class)->only([
     'store',
     'update',
