@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AuctionController extends Controller
 {
@@ -211,6 +212,65 @@ class AuctionController extends Controller
 
         return response()->json([
             'auction' => new AuctionResource($auction),
+        ]);
+    }
+
+    public function exportCsv(): StreamedResponse
+    {
+        $filename = 'auctions-' . now()->format('Y-m-d-H-i-s') . '.csv';
+
+        return response()->streamDownload(function (): void {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'id',
+                'title',
+                'description',
+                'category',
+                'seller',
+                'seller_email',
+                'winner',
+                'winner_email',
+                'starting_price',
+                'current_price',
+                'status',
+                'starts_at',
+                'ends_at',
+                'bids_count',
+                'created_at',
+                'updated_at',
+            ]);
+
+            Auction::query()
+                ->with(['category', 'user', 'winner'])
+                ->withCount('bids')
+                ->orderBy('created_at')
+                ->chunk(200, function ($auctions) use ($handle): void {
+                    foreach ($auctions as $auction) {
+                        fputcsv($handle, [
+                            $auction->id,
+                            $auction->title,
+                            $auction->description,
+                            $auction->category?->name,
+                            $auction->user?->name,
+                            $auction->user?->email,
+                            $auction->winner?->name,
+                            $auction->winner?->email,
+                            $auction->starting_price,
+                            $auction->current_price,
+                            $auction->status,
+                            $auction->starts_at?->toDateTimeString(),
+                            $auction->ends_at?->toDateTimeString(),
+                            $auction->bids_count,
+                            $auction->created_at?->toDateTimeString(),
+                            $auction->updated_at?->toDateTimeString(),
+                        ]);
+                    }
+                });
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
 

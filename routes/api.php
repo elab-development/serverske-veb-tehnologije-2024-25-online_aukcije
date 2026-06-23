@@ -27,6 +27,8 @@ Route::apiResource('categories', CategoryController::class)->only([
     'destroy',
 ])->middleware('auth:sanctum');
 
+Route::get('/auctions/export', [AuctionController::class, 'exportCsv']);
+
 Route::apiResource('auctions', AuctionController::class)->only([
     'index',
     'show',
